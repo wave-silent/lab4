@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,11 +11,11 @@ namespace lab4
 {
     internal class Collections
     {
-        private static List<string> _list;
+        private static List<object> _list;
 
         private static HashSet<string> _set;
 
-        public static List<string> List
+        public static List<object> List
         {
             get { return _list; }
             set { _list = value; }
@@ -92,14 +92,14 @@ namespace lab4
             Console.WriteLine("Теперь введем данные для каждого спортсмена");
             for (int i = 0; i < n; ++i)
             {
-                Console.Write("Введите фамилию для {0} спортсмена: ", i+1);
+                Console.Write("Введите фамилию для {0} спортсмена: ", i + 1);
                 streamWriter.Write(Console.ReadLine() + " ");
                 Console.Write("Введите Имя для {0} спортсмена: ", i + 1);
                 streamWriter.Write(Console.ReadLine() + " ");
                 Console.WriteLine("Теперь введем Баллы для {0} спортсмена: ", i + 1);
                 for (int j = 0; j < m; ++j)
                 {
-                    Console.Write("Введите баллы для {0} вида многоборья: ", j+1);
+                    Console.Write("Введите баллы для {0} вида многоборья: ", j + 1);
                     streamWriter.Write(Convert.ToInt32(validator.check_int(Console.ReadLine())) + " ");
                 }
                 streamWriter.WriteLine();
@@ -125,87 +125,74 @@ namespace lab4
             }
 
             n = Convert.ToInt32(streamReader.ReadLine());
-            
+
             m = Convert.ToInt32(streamReader.ReadLine());
 
             string[] arrAthletes = new string[2 + m];
 
-            Dictionary<string, int> Athletes = new Dictionary<string, int>();
+            Dictionary<int, string> Athletes = new Dictionary<int, string>();
 
             while ((s = streamReader.ReadLine()) != null)
             {
                 arrAthletes = s.Split(' ');
-                
+
                 string keyNameSurname = arrAthletes[0] + " " + arrAthletes[1];
 
                 int sumArrMarks = 0;
 
                 for (int i = 0; i < m; ++i)
                 {
-                    sumArrMarks += Convert.ToInt32(arrAthletes[i+2]);
+                    sumArrMarks += Convert.ToInt32(arrAthletes[i + 2]);
                 }
 
-                Athletes.Add(keyNameSurname, sumArrMarks);
+               
+                Athletes.Add(sumArrMarks, keyNameSurname);
             }
 
             streamReader.Close();
 
-            string res="";
+            string res = "";
 
-            // Сортировка по убыванию суммы баллов
-            var sortedAthletes = Athletes.OrderByDescending(x => x.Value).ToList();
-
-            if (sortedAthletes.Count > 1)
-            {
-                int place = 1;
-                int otherPlace = 1;
-                int n1 = sortedAthletes[0].Value;
-                res += sortedAthletes[0].Key + " " + sortedAthletes[0].Value + " "  + place + "\n";
-                for (int i = 1; i < sortedAthletes.Count; i++)
-                {
-                    if (sortedAthletes[i].Value == n1)
-                    {
-                        place = otherPlace;
-                        res += sortedAthletes[i].Key + " " + sortedAthletes[i].Value + " " + place + "\n";
-                        n1 = sortedAthletes[i].Value;
-                    }
-                    else if (sortedAthletes[i].Value < n1)
-                    {
-                        place++;
-                        otherPlace++;
-                        res += sortedAthletes[i].Key + " " + sortedAthletes[i].Value + " " + place + "\n";
-                        n1 = sortedAthletes[i].Value;
-                    }   
-                }
-                return res;
-            }
-            else
-            {
-                int place = 1;
-                res += sortedAthletes[0].Key + " " + sortedAthletes[0].Value + " " + place + "\n";
-
-                return res;
-            }
-        }
-
-        public static List<string> CreateList(int n)
-        {
-            List<string> list = new List<string>(n);
             
+            var sortedScores = Athletes.Keys.OrderByDescending(score => score).ToList();
+
+            
+            int place = 1;
+
+            foreach (var score in sortedScores)
+            {
+                int currentPlace = place;
+                foreach (var athleteName in Athletes[score])
+                {
+                    res += $"{athleteName} {score} {currentPlace}\n";
+                }
+                //place += Athletes[score].Count;  // Теперь это работает, т.к. Athletes[score] - List<string>
+            }
+
+            return res;
+        }
+        public static List<T> CreateList<T>(int n)
+        {
+            List<T> list = new List<T>(n);
+
             for (int i = 0; i < n; ++i)
             {
                 Console.Write("Напишите элемент, который вы хотите добавить в список: ");
-                list.Add(Console.ReadLine());
+                string input = Console.ReadLine();
+                T value = (T)Convert.ChangeType(input, typeof(T));
+                list.Add(value);
             }
-            List = list;
 
-            return List;
+            List = list.Cast<object>().ToList();
+           
+
+            return list;
         }
 
-        public static string PrintList(List<string> list)
+        public static string PrintList<T>(List<T> list)
         {
             string result = "";
-            foreach (string item in list)
+            foreach (T item in list)
                 result += item + " ";
 
             result = result.TrimEnd();
@@ -244,40 +231,76 @@ namespace lab4
         }
 
         // Решение 2 задачи
-        public static List<string> LinkedList(List<string> list)
+        public static LinkedList<T> AddReversedElements<T>(LinkedList<T> list)
         {
-            List<string> res = new List<string>();
-            foreach (string item in list)
+
+            // Создаем копию оригинального списка для результата
+            LinkedList<T> result = new LinkedList<T>(list);
+
+            // Добавляем элементы в обратном порядке
+            LinkedListNode<T> current = list.Last;
+            while (current != null)
             {
-                res.Add(item);
+                result.AddLast(current.Value);
+                current = current.Previous;
             }
 
-            for (int i = list.Count - 1; i >= 0; --i)
-            {
-                res.Add(list[i]);
-            }
-
-            List = res;
-
-            return res;
+            return result;
         }
 
-   
-        // Решение 1 задачи
-        public static List<string> Intersect(List<string> list1, List<string> list2)
-        {
-            List<string> res = new List<string>();
 
-            foreach (string item in list1)
+        // Решение 1 задачи
+        public static List<T> Intersect<T>(List<T> list1, List<T> list2)
+        {
+            List<T> res = new List<T>();
+
+            foreach (T item in list1)
             {
                 if (list2.Contains(item) && !res.Contains(item))
                 {
                     res.Add(item);
                 }
             }
-            List = res;
+            List = res.Cast<object>().ToList(); ;
 
             return res;
+        }
+
+        public static HashSet<string> task5_1(Dictionary<string, HashSet<string>> st, HashSet<string> global)
+        {
+
+            foreach (HashSet<string> item in st.Values)
+            {
+                global.IntersectWith(item);
+            }
+            Set = global;
+            return Set;
+        }
+
+        public static HashSet<string> task5_2(Dictionary<string, HashSet<string>> st, HashSet<string> global)
+        {
+            HashSet<string> allVisited = new HashSet<string>();
+            foreach (HashSet<string> studentSet in st.Values)
+            {
+                allVisited.UnionWith(studentSet);
+            }
+            allVisited.ExceptWith(task5_1(st, global));
+
+            Set = allVisited;
+            return allVisited;
+        }
+
+        public static HashSet<string> task5_3(Dictionary<string, HashSet<string>> st, HashSet<string> global)
+        {
+            HashSet<string> allVisited = new HashSet<string>();
+            foreach (HashSet<string> studentSet in st.Values)
+            {
+                allVisited.UnionWith(studentSet);
+            }
+            global.ExceptWith(allVisited);
+
+            Set = global;
+            return global;
         }
     }
 }
